@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
 import app from '../../config/app.config.js';
-import { generatePassword } from '../utils/GeneratePassword.js';
+import { generatePassword } from '../Utils/GeneratePassword.js';
 
 import { UserModel } from '../../config/database.config.js';
 
