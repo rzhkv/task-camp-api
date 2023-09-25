@@ -1,26 +1,40 @@
-import { UserModel } from '../../config/database.config.js';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+
+import app from '../../config/app.config.js';
 import { generatePassword } from '../utils/GeneratePassword.js';
+
+import { UserModel } from '../../config/database.config.js';
 
 export const createUserController = async (req, res) => {
   try {
     const { email, password, firstname, lastname } = req.body;
 
-    const currentUser = await UserModel.findOne({
+    const checkUser = await UserModel.findOne({
       where: { email: email },
     });
 
-    if (currentUser) return res.json({ status: 'fail', message: 'Пользователь с таким email уже существует' });
+    if (checkUser) {
+      return res.status(500).json({
+        status: 'error',
+        message: 'Пользователь с таким email уже существует',
+      });
+    }
+
+    const hashedPassword = await bcrypt.hashSync(password, 8);
 
     const user = await UserModel.create({
       firstname: firstname,
       lastname: lastname,
       email: email,
-      password: password,
+      password: hashedPassword,
     });
 
-    res.status(201).json({
+    const accessToken = jwt.sign({ id: user.id }, app.secretPass);
+
+    return res.status(201).json({
       status: 'success',
-      data: { user },
+      data: { accessToken },
     });
   } catch (error) {
     res.status(500).json({
@@ -37,20 +51,30 @@ export const loginUserController = async (req, res) => {
     const user = await UserModel.findOne({
       where: {
         email: email,
-        password: password,
       },
     });
 
     if (!user) {
       return res.status(404).json({
-        status: 'fail',
-        message: 'User with that ID not found',
+        status: 'error',
+        message: 'Пользователь не найден',
       });
     }
 
-    res.status(201).json({
+    const passwordIsValid = await bcrypt.compare(password, user.password);
+
+    if (!passwordIsValid) {
+      return res.status(500).json({
+        status: 'error',
+        message: 'Пароль неверный',
+      });
+    }
+
+    const accessToken = jwt.sign({ id: user.id }, accessTokenSecret);
+
+    return res.status(201).json({
       status: 'success',
-      data: { user },
+      data: { accessToken },
     });
   } catch (error) {
     res.status(500).json({
@@ -72,19 +96,22 @@ export const resetPasswordUserController = async (req, res) => {
 
     if (!user) {
       return res.status(404).json({
-        status: 'fail',
-        message: 'User with that email not found',
+        status: 'error',
+        message: 'Пользователь не найден',
       });
     }
 
-    let newGeneratedPassword = generatePassword(12);
+    const newGeneratedPassword = generatePassword(12);
 
-    user.update({
-      password: newGeneratedPassword,
+    const hashedPassword = await bcrypt.hash(newGeneratedPassword, 8);
+
+    await user.update({
+      password: hashedPassword,
     });
 
     res.status(200).json({
-      message: newGeneratedPassword,
+      status: 'success',
+      data: { password: newGeneratedPassword },
     });
   } catch (error) {
     res.status(500).json({

@@ -1,52 +1,47 @@
-import "dotenv/config";
+import 'dotenv/config';
 
-import express from "express";
-import bodyParser from "body-parser";
-import morgan from "morgan";
-import cors from "cors";
-import router from "./routes/api.js";
+import express from 'express';
+import bodyParser from 'body-parser';
+import morgan from 'morgan';
+import cors from 'cors';
+import router from './routes/api.js';
 
-import { connectToDatabase, sequelize } from "./config/database.config.js";
+import { connectToDatabase, sequelize } from './config/database.config.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json({ limit: "10kb" }));
-if (process.env.NODE_ENV === "development") app.use(morgan("dev"));
+app.use(express.json({ limit: '10kb' }));
+if (process.env.NODE_ENV === 'development') app.use(morgan('dev'));
 
-app.use(
-  cors({
-    origin: ["http://localhost:3000"],
-    credentials: true,
-  })
-);
-
+app.use(bodyParser.urlencoded({ extended: false}));
 app.use(bodyParser.json());
+app.use(cors());
 
-app.use(bodyParser.urlencoded({ extended: true }));
 
-app.get("/api/healthchecker", (req, res) => {
+
+app.get('/api/healthchecker', (req, res) => {
   res.status(200).json({
-    status: "success",
-    message: "API was started and working atwell!",
+    status: 'success',
+    message: 'API was started and working atwell!',
   });
 });
 
-app.use("/api", router)
+app.use('/api', router);
 
-app.all("*", (req, res) => {
+app.all('*', (req, res) => {
   res.status(404).json({
-    status: "fail",
+    status: 'fail',
     message: `Route dost not exist`,
   });
 });
 
 app.listen(PORT, async () => {
-  console.log("Server started!");
+  console.log('Server started!');
 
   await connectToDatabase();
 
   sequelize.sync({ force: false }).then(() => {
-    console.log("✅Synced database successfully...");
+    console.log('✅Synced database successfully...');
   });
 });

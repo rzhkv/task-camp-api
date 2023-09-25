@@ -2,6 +2,8 @@ import { checkSchema, validationResult } from 'express-validator';
 
 const validate = (schema) => async (req, res, next) => {
   try {
+
+
     await checkSchema(schema).run(req);
 
     const errors = validationResult(req);

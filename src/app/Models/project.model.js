@@ -13,7 +13,6 @@ const initProjectModel = function(sequelize, DataTypes) {
       },
       description: {
         type: DataTypes.STRING(100),
-        allowNull: false,
       },
     },
     {
