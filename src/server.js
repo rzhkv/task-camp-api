@@ -1,25 +1,36 @@
 import 'dotenv/config';
-
 import express from 'express';
 import bodyParser from 'body-parser';
 import morgan from 'morgan';
 import cors from 'cors';
 import router from './routes/api.js';
-
 import { connectToDatabase, sequelize } from './config/database.config.js';
 
+// app setup
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json({ limit: '10kb' }));
+// include morgan for dev
 if (process.env.NODE_ENV === 'development') app.use(morgan('dev'));
 
-app.use(bodyParser.urlencoded({ extended: false}));
+// parse request
+app.use(express.json({ limit: '10kb' }));
+
+// parse request
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+
+// cors
 app.use(cors());
 
+// state
+app.use((req, res, next) => {
+  req.state = {};
+  return next();
+});
 
 
+// Api checher
 app.get('/api/healthchecker', (req, res) => {
   res.status(200).json({
     status: 'success',
@@ -27,8 +38,10 @@ app.get('/api/healthchecker', (req, res) => {
   });
 });
 
+// routing
 app.use('/api', router);
 
+// set 404 for another routes
 app.all('*', (req, res) => {
   res.status(404).json({
     status: 'fail',
@@ -36,12 +49,13 @@ app.all('*', (req, res) => {
   });
 });
 
+// app start
 app.listen(PORT, async () => {
   console.log('Server started!');
 
   await connectToDatabase();
 
-  sequelize.sync({ force: false }).then(() => {
+  sequelize.sync({ force: true }).then(() => {
     console.log('✅Synced database successfully...');
   });
 });

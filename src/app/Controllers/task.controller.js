@@ -163,7 +163,7 @@ export const checkTaskController = async (req, res) => {
     }
 
     await task.update({
-      checked: !task.checked
+      checked: !task.checked,
     });
 
     const updatedTask = await TaskModel.findByPk(task.id);
@@ -171,6 +171,50 @@ export const checkTaskController = async (req, res) => {
     res.status(201).json({
       status: 'success',
       message: 'Задача обновлена',
+      data: { updatedTask },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: error.message,
+    });
+  }
+};
+
+export const addUserIntoTaskController = async (req, res) => {
+  const { taskId, userId } = req.body;
+  try {
+    const task = await TaskModel.findByPk(taskId);
+
+    if (!task) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Задача не найдена',
+      });
+    }
+
+    const user = await UserModel.findByPk(userId);
+
+    if (!task) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Пользователь не найдена',
+      });
+    }
+
+    await task.setUsers(user);
+
+    const updatedTask = await TaskModel.findByPk(task.id);
+
+    if (!updatedTask) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Задача не найдена',
+      });
+    }
+
+    return res.status(201).json({
+      status: 'success',
       data: { updatedTask },
     });
   } catch (error) {

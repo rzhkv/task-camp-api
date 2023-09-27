@@ -1,4 +1,4 @@
-import { SpaceModel, UserModel } from '../../config/database.config.js';
+import { SpaceModel, TaskModel, UserModel } from '../../config/database.config.js';
 
 export const createSpaceController = async (req, res) => {
   const { user } = req;

@@ -26,13 +26,12 @@ export const TaskModel = initTaskModel(sequelize, DataTypes);
 UserModel.belongsToMany(SpaceModel, { through: 'user_space' });
 SpaceModel.belongsToMany(UserModel, { through: 'user_space' });
 
-SpaceModel.belongsToMany(ProjectModel, { through: 'space_project' });
-ProjectModel.belongsToMany(SpaceModel, { through: 'space_project' });
-
 UserModel.belongsToMany(ProjectModel, { through: 'user_project' });
 ProjectModel.belongsToMany(UserModel, { through: 'user_project' });
 
-ProjectModel.belongsToMany(TaskModel, { through: 'project_task' });
-TaskModel.belongsToMany(ProjectModel, { through: 'project_task' });
+ProjectModel.belongsTo(SpaceModel);
+
+TaskModel.belongsTo(ProjectModel);
+TaskModel.belongsTo(UserModel);
 
 export { connectToDatabase, sequelize, Sequelize, DataTypes };
