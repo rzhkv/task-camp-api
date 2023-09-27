@@ -21,7 +21,7 @@ export const checkAuth = async (req, res, next) => {
       where: { id: verifed.id },
     });
 
-    req.user = user;
+    req.state.user = user;
 
     next();
   } catch (error) {

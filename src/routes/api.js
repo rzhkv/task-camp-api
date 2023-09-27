@@ -11,19 +11,19 @@ import { signupUserDataSchema, signinUserDataSchema, resetUserDataSchema } from 
 import { createUserController, loginUserController, resetPasswordUserController } from '../app/Controllers/user.controller.js';
 
 // Space validation scheme
-import { inviteSpaceDataSchema } from '../app/Validations/space.validation.js';
+import { inviteSpaceDataSchema, createProjectDataSchema } from '../app/Validations/space.validation.js';
 // Space controllers
-import { createSpaceController, addUserIntoSpaceController } from '../app/Controllers/space.controller.js';
+import { indexSpaceController, createSpaceController, getByIdSpaceController, addUserIntoSpaceController, createProjectSpaceController } from '../app/Controllers/space.controller.js';
 
 // Project validation scheme
-import { createProjectDataSchema } from '../app/Validations/project.validation.js';
+import { createTaskProjectDataSchema, addUserProjectDataSchema } from '../app/Validations/project.validation.js';
 // Project controllers
-import { indexProjectController, findByIdProjectController, createProjectController, updateProjectController, deleteProjectController, addUserIntoProjectController } from '../app/Controllers/project.controller.js';
+import { findByIdProjectController, updateProjectController, deleteProjectController, addUserIntoProjectController, createTaskProjectController } from '../app/Controllers/project.controller.js';
 
 // Task validation scheme
 import { createTaskDataSchema } from '../app/Validations/task.validation.js';
 // Task controllers
-import { indexTaskController, createTaskController, findByIdTaskController, updateTaskController, deleteTaskController, checkTaskController } from '../app/Controllers/task.controller.js';
+import { findByIdTaskController, updateTaskController, deleteTaskController, checkTaskController, addUserIntoTaskController } from '../app/Controllers/task.controller.js';
 
 
 /**
@@ -41,10 +41,11 @@ router.post('/reset', validate(resetUserDataSchema), resetPasswordUserController
  * POST - Create new space
  * POST - Add user into space
  */
-router.get('/spaces', checkAuth, createSpaceController);
+router.get('/spaces', checkAuth, indexSpaceController);
 router.post('/spaces', checkAuth, createSpaceController);
-router.get('/spaces/:id', checkAuth, createSpaceController);
-router.post('/spaces/invite', [checkAuth, validate(inviteSpaceDataSchema)], addUserIntoSpaceController);
+router.get('/spaces/:id', checkAuth, getByIdSpaceController);
+router.post('/spaces/:id/invite', [checkAuth, validate(inviteSpaceDataSchema)], addUserIntoSpaceController);
+router.post('/spaces/:id/project', [checkAuth, validate(createProjectDataSchema)] , createProjectSpaceController);
 
 /**
  * Project's in space
@@ -52,12 +53,11 @@ router.post('/spaces/invite', [checkAuth, validate(inviteSpaceDataSchema)], addU
  * PUT - Update project
  * DELETE - Delete project
  */
-router.get('/projects', checkAuth, indexProjectController);
-router.post('/projects', checkAuth, createProjectController);
 router.get('/projects/:id', checkAuth, findByIdProjectController);
 router.patch('/projects/:id', checkAuth, updateProjectController);
 router.delete('/projects/:id', checkAuth, deleteProjectController);
-router.post('/projects/:id/invite', checkAuth, addUserIntoProjectController);
+router.post('/projects/:id/invite', [checkAuth, validate(addUserProjectDataSchema)], addUserIntoProjectController);
+router.post('/projects/:id/task', [checkAuth, validate(createTaskProjectDataSchema)], createTaskProjectController);
 
 /**
  * Project's in space
@@ -65,14 +65,10 @@ router.post('/projects/:id/invite', checkAuth, addUserIntoProjectController);
  * PUT - Update project
  * DELETE - Delete project
  */
-router.get('/projects/:id/tasks', checkAuth, indexTaskController);
-router.post('/projects/:id/tasks', checkAuth, createTaskController);
-
 router.get('/tasks/:id', checkAuth, findByIdTaskController);
 router.patch('/tasks/:id', checkAuth, updateTaskController);
 router.delete('/tasks/:id', checkAuth, deleteTaskController);
-
-// router.post('/tasks/:id/invite', checkAuth, addUserIntoTaskController);
 router.patch('/tasks/:id/check', checkAuth, checkTaskController);
+router.patch('/tasks/:id/invite', checkAuth, addUserIntoTaskController);
 
 export default router;

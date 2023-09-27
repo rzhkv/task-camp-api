@@ -29,9 +29,13 @@ SpaceModel.belongsToMany(UserModel, { through: 'user_space' });
 UserModel.belongsToMany(ProjectModel, { through: 'user_project' });
 ProjectModel.belongsToMany(UserModel, { through: 'user_project' });
 
+SpaceModel.hasMany(ProjectModel);
 ProjectModel.belongsTo(SpaceModel);
 
+ProjectModel.hasMany(TaskModel);
 TaskModel.belongsTo(ProjectModel);
+
+UserModel.hasMany(TaskModel);
 TaskModel.belongsTo(UserModel);
 
 export { connectToDatabase, sequelize, Sequelize, DataTypes };

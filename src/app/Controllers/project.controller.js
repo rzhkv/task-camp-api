@@ -1,59 +1,34 @@
-import { ProjectModel, SpaceModel, UserModel } from '../../config/database.config.js';
-
-export const indexProjectController = async (req, res) => {
-  try {
-    const projects = await ProjectModel.findAll();
-    res.status(201).json({
-      status: 'success',
-      data: { projects },
-    });
-  } catch (error) {
-    res.status(500).json({
-      status: 'error',
-      message: error.message,
-    });
-  }
-};
+import { ProjectModel, TaskModel, UserModel } from '../../config/database.config.js';
 
 export const findByIdProjectController = async (req, res) => {
   const { id } = req.params;
+  const { user } = req.state;
   try {
-    const project = await ProjectModel.findByPk(id);
-    res.status(201).json({
-      status: 'success',
-      data: { project },
+    const project = await ProjectModel.findByPk(id, {
+      include: [
+        {
+          model: TaskModel,
+        },
+      ],
     });
-  } catch (error) {
-    res.status(500).json({
-      status: 'error',
-      message: error.message,
-    });
-  }
-};
 
-export const createProjectController = async (req, res) => {
-  const { title, description, spaceId } = req.body;
-  const { user } = req;
-  try {
-    const space = await SpaceModel.findByPk(spaceId);
-
-    if (!space) {
-      return res.status(500).json({
+    if (!project) {
+      return res.status(404).json({
         status: 'error',
-        message: 'Борд не найден',
+        message: 'Проект не найден!',
       });
     }
 
-    const project = await ProjectModel.create({
-      title: title,
-      description: description,
-    });
+    const userAccess = await project.hasUser(user.id);
 
-    await project.setUsers(user);
+    if (!userAccess) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Доступ к проекту запрещен!',
+      });
+    }
 
-    await project.setSpaces(space);
-
-    res.status(200).json({
+    res.status(201).json({
       status: 'success',
       data: { project },
     });
@@ -83,7 +58,13 @@ export const updateProjectController = async (req, res) => {
       description: description,
     });
 
-    const updatedProject = await ProjectModel.findByPk(project.id);
+    const updatedProject = await ProjectModel.findByPk(project.id, {
+      include: [
+        {
+          model: TaskModel,
+        },
+      ],
+    });
 
     res.status(201).json({
       status: 'success',
@@ -105,7 +86,7 @@ export const deleteProjectController = async (req, res) => {
     if (!project) {
       return res.status(404).json({
         status: 'error',
-        message: 'Проект не найден',
+        message: 'Проект не найден!',
       });
     }
 
@@ -124,7 +105,7 @@ export const deleteProjectController = async (req, res) => {
 };
 
 export const addUserIntoProjectController = async (req, res) => {
-  const users = req.body['users[]'];
+  const { userId } = req.body;
   const { id } = req.params;
   try {
     const project = await ProjectModel.findByPk(id);
@@ -136,20 +117,68 @@ export const addUserIntoProjectController = async (req, res) => {
       });
     }
 
-    for (const item of users) {
-      const user = await UserModel.findByPk(item);
-      if (!user) {
-        return res.status(500).json({
-          status: 'error',
-          message: 'Пользователь не найден'
-        })
-      }
-      await user.setProjects(project);
+    const user = await UserModel.findByPk(userId);
+
+    if (!user) {
+      return res.status(500).json({
+        status: 'error',
+        message: 'Пользователь не найден',
+      });
     }
+
+    await user.setProjects(project);
 
     res.status(201).json({
       status: 'success',
-      message: 'новые пользователи добавлены',
+      message: 'Новый пользователь добавлен!',
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: error.message,
+    });
+  }
+};
+
+export const createTaskProjectController = async (req, res) => {
+  const { title } = req.body;
+  const { id } = req.params;
+  try {
+    const project = await ProjectModel.findByPk(id);
+
+    if (!project) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Не удалось найти проект',
+      });
+    }
+
+    const task = await TaskModel.create({
+      title: title,
+    });
+
+    if (!task) {
+      return res.status(500).json({
+        status: 'error',
+        message: 'Не удалось создать задачу',
+      });
+    }
+
+    await task.setProject(project);
+
+    const updatedTask = await TaskModel.findByPk(task.id);
+
+    if (!updatedTask) {
+      return res.status(500).json({
+        status: 'error',
+        message: 'Не удалось прикрепить задачу к проекту!',
+      });
+    }
+
+    return res.status(201).json({
+      status: 'success',
+      message: 'Задача добавлена',
+      data: { updatedTask },
     });
   } catch (error) {
     res.status(500).json({

@@ -1,34 +1,8 @@
 import { ProjectModel, UserModel, TaskModel } from '../../config/database.config.js';
 
-export const indexTaskController = async (req, res) => {
-  const { id } = req.params;
-  try {
-    const tasks = await TaskModel.findAll({
-      include: [
-        {
-          model: ProjectModel,
-          as: 'projects',
-          where: {
-            id: id,
-          },
-        },
-      ],
-    });
-
-    return res.status(201).json({
-      status: 'success',
-      data: { tasks },
-    });
-  } catch (error) {
-    res.status(500).json({
-      status: 'error',
-      message: error.message,
-    });
-  }
-};
-
 export const findByIdTaskController = async (req, res) => {
   const { id } = req.params;
+  const { user } = req.state;
   try {
     const task = await TaskModel.findByPk(id);
 
@@ -36,6 +10,26 @@ export const findByIdTaskController = async (req, res) => {
       return res.status(404).json({
         status: 'error',
         message: 'Задача не найдена',
+      });
+    }
+
+    const taskProjectId = task.projectId;
+
+    const userAccess = await UserModel.findByPk(user.id, {
+      include: [
+        {
+          model: ProjectModel,
+          where: {
+            id: taskProjectId,
+          },
+        },
+      ],
+    });
+
+    if (!userAccess) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'У вас нет доступа к задаче!',
       });
     }
 
@@ -51,46 +45,8 @@ export const findByIdTaskController = async (req, res) => {
   }
 };
 
-export const createTaskController = async (req, res) => {
-  const { title } = req.body;
-  const { id } = req.params;
-  try {
-    const project = await ProjectModel.findByPk(id);
-
-    if (!project) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Не удалось найти проект',
-      });
-    }
-
-    const task = await TaskModel.create({
-      title: title,
-    });
-
-    if (!task) {
-      return res.status(500).json({
-        status: 'error',
-        message: 'Не удалось создать задачу',
-      });
-    }
-
-    await task.setProjects(project);
-
-    return res.status(201).json({
-      status: 'success',
-      message: 'Задача добавлена',
-      data: { task },
-    });
-  } catch (error) {
-    res.status(500).json({
-      status: 'error',
-      message: error.message,
-    });
-  }
-};
-
 export const updateTaskController = async (req, res) => {
+  const { user } = req.state;
   const { id } = req.params;
   const { title, description, deadline } = req.body;
   try {
@@ -100,6 +56,26 @@ export const updateTaskController = async (req, res) => {
       return res.status(404).json({
         status: 'error',
         message: 'Задача не найдена',
+      });
+    }
+
+    const taskProjectId = task.projectId;
+
+    const userAccess = await UserModel.findByPk(user.id, {
+      include: [
+        {
+          model: ProjectModel,
+          where: {
+            id: taskProjectId,
+          },
+        },
+      ],
+    });
+
+    if (!userAccess) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'У вас нет доступа к задаче!',
       });
     }
 
@@ -126,6 +102,7 @@ export const updateTaskController = async (req, res) => {
 
 export const deleteTaskController = async (req, res) => {
   const { id } = req.params;
+  const { user } = req.state;
   try {
     const task = await TaskModel.findByPk(id);
 
@@ -133,6 +110,26 @@ export const deleteTaskController = async (req, res) => {
       return res.status(404).json({
         status: 'error',
         message: 'Задача не найден',
+      });
+    }
+
+    const taskProjectId = task.projectId;
+
+    const userAccess = await UserModel.findByPk(user.id, {
+      include: [
+        {
+          model: ProjectModel,
+          where: {
+            id: taskProjectId,
+          },
+        },
+      ],
+    });
+
+    if (!userAccess) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'У вас нет доступа к задаче!',
       });
     }
 
@@ -152,6 +149,7 @@ export const deleteTaskController = async (req, res) => {
 
 export const checkTaskController = async (req, res) => {
   const { id } = req.params;
+  const { user } = req.state;
   try {
     const task = await TaskModel.findByPk(id);
 
@@ -159,6 +157,26 @@ export const checkTaskController = async (req, res) => {
       return res.status(404).json({
         status: 'error',
         message: 'Задача не найден',
+      });
+    }
+
+    const taskProjectId = task.projectId;
+
+    const userAccess = await UserModel.findByPk(user.id, {
+      include: [
+        {
+          model: ProjectModel,
+          where: {
+            id: taskProjectId,
+          },
+        },
+      ],
+    });
+
+    if (!userAccess) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'У вас нет доступа к задаче!',
       });
     }
 
@@ -182,9 +200,10 @@ export const checkTaskController = async (req, res) => {
 };
 
 export const addUserIntoTaskController = async (req, res) => {
-  const { taskId, userId } = req.body;
+  const { userId } = req.body;
+  const { id } = req.params;
   try {
-    const task = await TaskModel.findByPk(taskId);
+    const task = await TaskModel.findByPk(id);
 
     if (!task) {
       return res.status(404).json({
@@ -202,9 +221,7 @@ export const addUserIntoTaskController = async (req, res) => {
       });
     }
 
-    await task.setUsers(user);
-
-    const updatedTask = await TaskModel.findByPk(task.id);
+   const updatedTask = await task.setUser(user);
 
     if (!updatedTask) {
       return res.status(404).json({

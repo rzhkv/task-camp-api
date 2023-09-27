@@ -1,3 +1,7 @@
-export const createProjectDataSchema = {
-  email: { isEmail: { errorMessage: 'Проверьте поле email' } },
+export const createTaskProjectDataSchema = {
+  title: { notEmpty: { errorMessage: 'Поле "Название проекта" не должно быть пустым' } },
+};
+
+export const addUserProjectDataSchema = {
+  userId: { notEmpty: { errorMessage: 'Нужно выбрать пользователя' } },
 };

@@ -39,7 +39,7 @@ app.get('/api/healthchecker', (req, res) => {
 });
 
 // routing
-app.use('/api', router);
+app.use('/api/v1', router);
 
 // set 404 for another routes
 app.all('*', (req, res) => {
@@ -55,7 +55,7 @@ app.listen(PORT, async () => {
 
   await connectToDatabase();
 
-  sequelize.sync({ force: true }).then(() => {
+  sequelize.sync({ force: 0 }).then(() => {
     console.log('✅Synced database successfully...');
   });
 });
