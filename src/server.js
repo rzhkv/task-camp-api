@@ -29,7 +29,6 @@ app.use((req, res, next) => {
   return next();
 });
 
-
 // Api checher
 app.get('/api/healthchecker', (req, res) => {
   res.status(200).json({
