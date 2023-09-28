@@ -1,6 +1,5 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import app from '../../config/app.config.js';
 
 import { generatePassword } from '../Utils/GeneratePassword.js';
 import { UserModel } from '../../config/database.config.js';
@@ -29,7 +28,7 @@ export const createUserController = async (req, res) => {
       password: hashedPassword,
     });
 
-    const accessToken = jwt.sign({ id: user.id }, app.secretPass);
+    const accessToken = jwt.sign({ id: user.id },  process.env.TOKEN_KEY);
 
     return res.status(201).json({
       status: 'success',
@@ -69,7 +68,7 @@ export const loginUserController = async (req, res) => {
       });
     }
 
-    const accessToken = jwt.sign({ id: user.id }, app.secretPass);
+    const accessToken = jwt.sign({ id: user.id },  process.env.TOKEN_KEY);
 
     return res.status(201).json({
       status: 'success',

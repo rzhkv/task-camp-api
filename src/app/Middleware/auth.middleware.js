@@ -1,5 +1,4 @@
 import jwt from 'jsonwebtoken';
-import app from '../../config/app.config.js';
 import { UserModel } from '../../config/database.config.js';
 
 export const checkAuth = async (req, res, next) => {
@@ -15,7 +14,7 @@ export const checkAuth = async (req, res, next) => {
 
     const token = authHeader.split(' ')[1];
 
-    const verifed = jwt.verify(token, app.secretPass);
+    const verifed = jwt.verify(token, process.env.TOKEN_KEY);
 
     const user = await UserModel.findOne({
       where: { id: verifed.id },
