@@ -1,2 +1,10 @@
-node_modules
-mysql
+# Dependency directories
+node_modules/
+
+# dotenv environment variables file
+.env
+
+# Logs
+mysql/
+logs
+*.log
