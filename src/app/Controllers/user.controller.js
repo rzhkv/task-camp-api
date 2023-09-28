@@ -4,6 +4,29 @@ import jwt from 'jsonwebtoken';
 import { generatePassword } from '../Utils/GeneratePassword.js';
 import { UserModel } from '../../config/database.config.js';
 
+export const showUserController = async (req, res) => {
+  try {
+    const { user } = req.state;
+
+    if (!user) {
+      res.status(404).json({
+        status: 'error',
+        message: 'Пользователь не найден!',
+      });
+    }
+
+    res.status(201).json({
+      status: 'success',
+      data: { user },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: error.message,
+    });
+  }
+};
+
 export const createUserController = async (req, res) => {
   try {
     const { email, password, firstname, lastname } = req.body;
@@ -28,7 +51,7 @@ export const createUserController = async (req, res) => {
       password: hashedPassword,
     });
 
-    const accessToken = jwt.sign({ id: user.id },  process.env.TOKEN_KEY);
+    const accessToken = jwt.sign({ id: user.id }, process.env.TOKEN_KEY);
 
     return res.status(201).json({
       status: 'success',
@@ -68,7 +91,7 @@ export const loginUserController = async (req, res) => {
       });
     }
 
-    const accessToken = jwt.sign({ id: user.id },  process.env.TOKEN_KEY);
+    const accessToken = jwt.sign({ id: user.id }, process.env.TOKEN_KEY);
 
     return res.status(201).json({
       status: 'success',

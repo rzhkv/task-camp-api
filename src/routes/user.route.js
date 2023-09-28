@@ -3,7 +3,6 @@ const router = Router();
 
 // express-validator middleware
 import validate from '../app/Middleware/validator.middleware.js';
-import { checkAuth } from '../app/Middleware/auth.middleware.js';
 
 // User validation scheme
 import { signupUserDataSchema, signinUserDataSchema, resetUserDataSchema } from '../app/Validations/user.validation.js';
@@ -20,5 +19,6 @@ import { createUserController, loginUserController, resetPasswordUserController 
 router.post('/signup', validate(signupUserDataSchema), createUserController);
 router.post('/signin', validate(signinUserDataSchema), loginUserController);
 router.post('/reset', validate(resetUserDataSchema), resetPasswordUserController);
+router.post('/me', showUserController);
 
 export default router;
